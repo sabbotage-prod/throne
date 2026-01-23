@@ -1,4 +1,3 @@
-# throne
 # Throne (docs)
 
 This folder contains the static Throne web app (throne-app.html).
