@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Throne</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    .leaflet-container { font-family: 'Inter', sans-serif; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'throne-black': '#000000',
+            'throne-red': '#E53935',
+            'throne-yellow': '#FDD835',
+            'throne-green': '#43A047',
+            'throne-gray': '#9E9E9E',
+            'throne-lightgray': '#F5F5F5'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-white min-h-screen">
+  <div id="app"></div>
+  
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    function App() {
+      const [page, setPage] = useState('landing');
+      const [showFilters, setShowFilters] = useState(false);
+      const [showAddSpot, setShowAddSpot] = useState(false);
+      const [expanded, setExpanded] = useState(null);
+      const [filters, setFilters] = useState({ categories: [], amenities: [], maxDistance: 10, minRating: 0 });
+      const [selectedLocation, setSelectedLocation] = useState(null);
+      const [userLocation, setUserLocation] = useState(null);
+      const [locationSearch, setLocationSearch] = useState('');
+      const [searchResults, setSearchResults] = useState([]);
+      const [isSearching, setIsSearching] = useState(false);
+      const [mapCenter, setMapCenter] = useState([48.8566, 2.3522]);
+      const [locationName, setLocationName] = useState('Paris');
+      const [savedSpots, setSavedSpots] = useState([]);
+      const mapRef = useRef(null);
+      const mapInstanceRef = useRef(null);
+      const markersRef = useRef([]);
+      const userMarkerRef = useRef(null);
+      
+      // Category colors - Unit Portables style
+      const categoryColors = {
+        'Public': { bg: '#43A047', text: 'white', code: '01/' },      // Green
+        'Private': { bg: '#1E88E5', text: 'white', code: '02/' },     // Blue  
+        'Pay': { bg: '#FDD835', text: 'black', code: '03/' }          // Yellow
+      };
+      
+      const categories = ['Public', 'Private', 'Pay'];
+      
+      const amenityOptions = [
+        'Changing Table', 'Lactation Room', 'Drinking Fountain', 'Mirrors', 
+        'Menstrual Supplies', 'Genderless', 'Wheelchair Accessible', 'Urinal', 
+        'Vending Machine', 'Smells Nice', 'Hand Lotion', 'Nice Space'
+      ];
+      
+      const [locations, setLocations] = useState([
+        { id: 1, name: 'Champ de Mars', category: 'Public', address: 'Champ de Mars, 75007 Paris', lat: 48.8584, lng: 2.2945, rating: 4.0, hours: '06:00–22:00', desc: 'Clean public facility near the Eiffel Tower.', amenities: ['Wheelchair Accessible', 'Changing Table', 'Mirrors'], reviews: 127 },
+        { id: 2, name: 'Café de Flore', category: 'Private', address: '172 Bd Saint-Germain, 75006', lat: 48.8540, lng: 2.3325, rating: 4.5, hours: '07:00–01:30', desc: 'Historic café with well-maintained restrooms.', amenities: ['Mirrors', 'Smells Nice', 'Nice Space', 'Hand Lotion'], reviews: 89 },
+        { id: 3, name: 'Sanisettes Louvre', category: 'Public', address: 'Place du Carrousel, 75001', lat: 48.8606, lng: 2.3376, rating: 3.5, hours: '24h', desc: 'Self-cleaning public toilet near the Louvre.', amenities: ['Wheelchair Accessible', 'Genderless'], reviews: 203 },
+        { id: 4, name: 'Galeries Lafayette', category: 'Private', address: '40 Bd Haussmann, 75009', lat: 48.8738, lng: 2.3320, rating: 5.0, hours: '09:30–20:30', desc: 'Luxurious department store restrooms.', amenities: ['Wheelchair Accessible', 'Changing Table', 'Lactation Room', 'Mirrors', 'Hand Lotion', 'Smells Nice', 'Nice Space', 'Menstrual Supplies'], reviews: 312 },
+        { id: 5, name: 'Luxembourg Gardens', category: 'Public', address: 'Jardin du Luxembourg, 75006', lat: 48.8462, lng: 2.3372, rating: 4.0, hours: '07:00–21:00', desc: 'Public restroom in the beautiful Luxembourg Gardens.', amenities: ['Wheelchair Accessible', 'Changing Table', 'Drinking Fountain', 'Mirrors'], reviews: 156 },
+        { id: 6, name: 'Gare du Nord', category: 'Pay', address: '18 Rue de Dunkerque, 75010', lat: 48.8809, lng: 2.3553, rating: 3.0, hours: '24h', desc: 'Paid restrooms in the train station. €1 entry.', amenities: ['Wheelchair Accessible', 'Urinal', 'Mirrors', 'Vending Machine'], reviews: 445 },
+        { id: 7, name: 'Le Marais Sanisette', category: 'Public', address: 'Rue des Francs Bourgeois, 75004', lat: 48.8572, lng: 2.3620, rating: 3.5, hours: '24h', desc: 'Self-cleaning public toilet in Le Marais district.', amenities: ['Wheelchair Accessible', 'Genderless'], reviews: 98 },
+        { id: 8, name: 'Printemps', category: 'Private', address: '64 Bd Haussmann, 75009', lat: 48.8740, lng: 2.3280, rating: 4.5, hours: '10:00–20:00', desc: 'Upscale department store facilities.', amenities: ['Wheelchair Accessible', 'Changing Table', 'Mirrors', 'Hand Lotion', 'Nice Space', 'Menstrual Supplies'], reviews: 178 },
+        { id: 9, name: 'Point WC Champs-Élysées', category: 'Pay', address: '92 Av. des Champs-Élysées, 75008', lat: 48.8708, lng: 2.3032, rating: 4.0, hours: '08:00–22:00', desc: 'Premium paid restroom. €1.50 entry.', amenities: ['Wheelchair Accessible', 'Changing Table', 'Mirrors', 'Hand Lotion', 'Smells Nice'], reviews: 267 }
+      ]);
+
+      const [newSpot, setNewSpot] = useState({
+        name: '', category: 'Public', address: '', desc: '', hours: '',
+        rating: 0, amenities: [], lat: null, lng: null
+      });
+
+      const locationsWithDistance = locations.map(loc => {
+        const dist = getDistance(mapCenter[0], mapCenter[1], loc.lat, loc.lng);
+        return { ...loc, distance: dist };
+      });
+
+      const filtered = locationsWithDistance.filter(loc => {
+        if (filters.categories.length > 0 && !filters.categories.includes(loc.category)) return false;
+        if (filters.amenities.length > 0 && !filters.amenities.every(a => loc.amenities.includes(a))) return false;
+        if (loc.distance > filters.maxDistance) return false;
+        if (loc.rating < filters.minRating) return false;
+        return true;
+      }).sort((a, b) => a.distance - b.distance);
+
+      function getDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return Math.round(R * c * 10) / 10;
+      }
+
+      const getCurrentLocation = () => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
+              setUserLocation([latitude, longitude]);
+              setMapCenter([latitude, longitude]);
+              setLocationName('Current');
+              if (mapInstanceRef.current) {
+                mapInstanceRef.current.setView([latitude, longitude], 14);
+                updateUserMarker([latitude, longitude]);
+              }
+            },
+            () => alert('Unable to get location.')
+          );
+        }
+      };
+
+      const updateUserMarker = (coords) => {
+        if (!mapInstanceRef.current) return;
+        if (userMarkerRef.current) userMarkerRef.current.remove();
+
+        const userIcon = L.divIcon({
+          className: 'user-marker',
+          html: `<div style="background: #E53935; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(229,57,53,0.5);"></div>`,
+          iconSize: [14, 14],
+          iconAnchor: [7, 7]
+        });
+
+        userMarkerRef.current = L.marker(coords, { icon: userIcon, zIndexOffset: 1000 })
+          .addTo(mapInstanceRef.current)
+          .bindPopup('<strong>You</strong>');
+      };
+
+      const searchLocation = async () => {
+        if (!locationSearch.trim()) return;
+        setIsSearching(true);
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationSearch)}&limit=5`);
+          const data = await response.json();
+          setSearchResults(data);
+        } catch (error) {
+          console.error('Search failed:', error);
+        }
+        setIsSearching(false);
+      };
+
+      const selectSearchResult = (result) => {
+        const lat = parseFloat(result.lat);
+        const lng = parseFloat(result.lon);
+        setMapCenter([lat, lng]);
+        setLocationName(result.display_name.split(',')[0]);
+        setSearchResults([]);
+        setLocationSearch('');
+        if (mapInstanceRef.current) mapInstanceRef.current.setView([lat, lng], 14);
+      };
+
+      const toggleCategory = (cat) => {
+        setFilters(f => ({
+          ...f,
+          categories: f.categories.includes(cat) ? f.categories.filter(c => c !== cat) : [...f.categories, cat]
+        }));
+      };
+
+      const toggleAmenity = (amenity) => {
+        setFilters(f => ({
+          ...f,
+          amenities: f.amenities.includes(amenity) ? f.amenities.filter(a => a !== amenity) : [...f.amenities, amenity]
+        }));
+      };
+
+      const toggleNewSpotAmenity = (amenity) => {
+        setNewSpot(s => ({
+          ...s,
+          amenities: s.amenities.includes(amenity) ? s.amenities.filter(a => a !== amenity) : [...s.amenities, amenity]
+        }));
+      };
+
+      const toggleSaveSpot = (id) => {
+        setSavedSpots(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+      };
+
+      const clearFilters = () => setFilters({ categories: [], amenities: [], maxDistance: 10, minRating: 0 });
+
+      const filterCount = filters.categories.length + filters.amenities.length + (filters.maxDistance < 10 ? 1 : 0) + (filters.minRating > 0 ? 1 : 0);
+
+      const Stars = ({ rating, interactive, onRate }) => (
+        <span className="text-sm tracking-tight">
+          {[1,2,3,4,5].map(i => (
+            <span 
+              key={i} 
+              className={`${i <= rating ? 'text-throne-black' : 'text-gray-300'} ${interactive ? 'cursor-pointer' : ''}`}
+              onClick={() => interactive && onRate && onRate(i)}
+            >
+              ★
+            </span>
+          ))}
+        </span>
+      );
+
+      const handleAddSpot = () => {
+        if (!newSpot.name || !newSpot.address) {
+          alert('Please fill in name and address');
+          return;
+        }
+        const spot = {
+          ...newSpot,
+          id: Date.now(),
+          lat: newSpot.lat || mapCenter[0] + (Math.random() - 0.5) * 0.01,
+          lng: newSpot.lng || mapCenter[1] + (Math.random() - 0.5) * 0.01,
+          distance: 0.1,
+          reviews: 1
+        };
+        setLocations(prev => [...prev, spot]);
+        setNewSpot({ name: '', category: 'Public', address: '', desc: '', hours: '', rating: 0, amenities: [], lat: null, lng: null });
+        setShowAddSpot(false);
+      };
+
+      const shareSpot = (loc) => {
+        const text = `${loc.name} on Throne — ${loc.rating}★ ${loc.address}`;
+        if (navigator.share) {
+          navigator.share({ title: loc.name, text, url: window.location.href });
+        } else {
+          navigator.clipboard.writeText(text);
+          alert('Copied!');
+        }
+      };
+
+      useEffect(() => {
+        if (page === 'results' && mapRef.current && !mapInstanceRef.current) {
+          mapInstanceRef.current = L.map(mapRef.current).setView(mapCenter, 13);
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap © CARTO'
+          }).addTo(mapInstanceRef.current);
+          if (userLocation) updateUserMarker(userLocation);
+        }
+        return () => {
+          if (mapInstanceRef.current && page !== 'results') {
+            mapInstanceRef.current.remove();
+            mapInstanceRef.current = null;
+          }
+        };
+      }, [page]);
+
+      useEffect(() => {
+        if (!mapInstanceRef.current) return;
+        markersRef.current.forEach(marker => marker.remove());
+        markersRef.current = [];
+
+        filtered.forEach((loc, index) => {
+          const colors = categoryColors[loc.category];
+          const isSelected = selectedLocation === loc.id;
+          
+          const markerIcon = L.divIcon({
+            className: 'custom-marker',
+            html: `
+              <div style="
+                background: ${colors.bg}; 
+                width: 28px; 
+                height: 28px; 
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+                font-weight: 900;
+                color: ${colors.text};
+                border: ${isSelected ? '3px solid black' : 'none'};
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+              ">
+                ${String(index + 1).padStart(2, '0')}
+              </div>
+            `,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+          });
+
+          const marker = L.marker([loc.lat, loc.lng], { icon: markerIcon })
+            .addTo(mapInstanceRef.current)
+            .bindPopup(`<strong>${loc.name}</strong><br>${loc.rating}★`);
+          
+          marker.on('click', () => {
+            setSelectedLocation(loc.id);
+            setExpanded(loc.id);
+          });
+
+          markersRef.current.push(marker);
+        });
+
+        if (filtered.length > 0 && !selectedLocation) {
+          const bounds = L.latLngBounds(filtered.map(loc => [loc.lat, loc.lng]));
+          mapInstanceRef.current.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+        }
+      }, [filtered, selectedLocation]);
+
+      // Unit Portables style label card
+      const LocationCard = ({ loc, index }) => {
+        const colors = categoryColors[loc.category];
+        const isSelected = selectedLocation === loc.id;
+        const isSaved = savedSpots.includes(loc.id);
+        const isExpanded = expanded === loc.id;
+
+        return (
+          <div 
+            className={`bg-white ${isSelected ? 'ring-2 ring-black' : ''}`}
+            style={{ borderLeft: `4px solid ${colors.bg}` }}
+            onClick={() => {
+              setSelectedLocation(loc.id);
+              if (mapInstanceRef.current) mapInstanceRef.current.setView([loc.lat, loc.lng], 16);
+            }}
+          >
+            {/* Header row - Unit Portables label style */}
+            <div className="flex items-stretch">
+              {/* Number box */}
+              <div 
+                className="w-16 flex items-center justify-center text-lg font-black"
+                style={{ backgroundColor: colors.bg, color: colors.text }}
+              >
+                {String(index + 1).padStart(2, '0')}/
+              </div>
+              
+              {/* Name and category */}
+              <div className="flex-1 p-3 border-b border-gray-200">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-black text-lg leading-tight">{loc.name}</h3>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide mt-0.5">{loc.category} Facility</p>
+                  </div>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); toggleSaveSpot(loc.id); }}
+                    className="text-lg"
+                  >
+                    {isSaved ? '●' : '○'}
+                  </button>
+                </div>
+              </div>
+              
+              {/* Rating box */}
+              <div className="w-16 flex flex-col items-center justify-center border-l border-b border-gray-200 bg-throne-lightgray">
+                <span className="text-lg font-black">{loc.rating}</span>
+                <span className="text-[10px] text-gray-500">★ RATING</span>
+              </div>
+            </div>
+
+            {/* Details row */}
+            <div className="p-3 text-sm">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-gray-600">{loc.address}</span>
+                <span className="font-bold">{loc.distance}km</span>
+              </div>
+              
+              {/* Amenities */}
+              <div className="flex flex-wrap gap-1 mb-3">
+                {loc.amenities.slice(0, 4).map(a => (
+                  <span key={a} className="px-2 py-0.5 bg-throne-lightgray text-xs">{a}</span>
+                ))}
+                {loc.amenities.length > 4 && (
+                  <span className="px-2 py-0.5 text-xs text-gray-400">+{loc.amenities.length - 4}</span>
+                )}
+              </div>
+
+              <button 
+                onClick={(e) => { e.stopPropagation(); setExpanded(isExpanded ? null : loc.id); }}
+                className="w-full py-2 bg-black text-white text-xs font-bold tracking-wide hover:bg-gray-800"
+              >
+                {isExpanded ? '− LESS' : '+ MORE'}
+              </button>
+            </div>
+
+            {/* Expanded section */}
+            {isExpanded && (
+              <div className="border-t border-gray-200 p-3 bg-throne-lightgray text-sm">
+                <p className="mb-3">{loc.desc}</p>
+                
+                <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
+                  <div className="bg-white p-2">
+                    <span className="text-gray-500 block">HOURS</span>
+                    <span className="font-bold">{loc.hours}</span>
+                  </div>
+                  <div className="bg-white p-2">
+                    <span className="text-gray-500 block">REVIEWS</span>
+                    <span className="font-bold">{loc.reviews}</span>
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <span className="text-xs text-gray-500 block mb-1">ALL AMENITIES</span>
+                  <div className="flex flex-wrap gap-1">
+                    {loc.amenities.map(a => (
+                      <span key={a} className="px-2 py-1 bg-white text-xs border border-gray-300">{a}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}`, '_blank');
+                    }}
+                    className="flex-1 py-2 bg-black text-white text-xs font-bold tracking-wide"
+                  >
+                    DIRECTIONS →
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); shareSpot(loc); }}
+                    className="px-4 py-2 border border-black text-xs font-bold"
+                  >
+                    SHARE
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      // FILTER MODAL
+      const FilterModal = () => (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
+          <div className="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-black text-white p-4 flex justify-between items-center z-10">
+              <h2 className="text-lg font-black tracking-wide">FILTERS</h2>
+              <button onClick={() => setShowFilters(false)} className="text-2xl leading-none">×</button>
+            </div>
+            <div className="p-4 space-y-6">
+              <div>
+                <label className="text-xs font-bold text-gray-500 block mb-2">MAX DISTANCE</label>
+                <div className="flex items-center gap-4">
+                  <input type="range" min="0.5" max="10" step="0.5" value={filters.maxDistance}
+                    onChange={e => setFilters(f => ({...f, maxDistance: +e.target.value}))}
+                    className="flex-1" />
+                  <span className="font-black text-lg w-16 text-right">{filters.maxDistance}km</span>
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-xs font-bold text-gray-500 block mb-2">MIN RATING</label>
+                <div className="flex gap-2">
+                  {[0, 3, 3.5, 4, 4.5].map(r => (
+                    <button key={r} onClick={() => setFilters(f => ({...f, minRating: r}))}
+                      className={`flex-1 py-2 text-sm font-bold ${filters.minRating === r ? 'bg-black text-white' : 'bg-throne-lightgray'}`}> 
+                      {r === 0 ? 'ALL' : r + '★'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-xs font-bold text-gray-500 block mb-2">FACILITY TYPE</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {categories.map(cat => {
+                    const colors = categoryColors[cat];
+                    const isSelected = filters.categories.includes(cat);
+                    return (
+                      <button 
+                        key={cat} 
+                        onClick={() => toggleCategory(cat)}
+                        className="py-3 text-sm font-bold"
+                        style={{ 
+                          backgroundColor: isSelected ? colors.bg : '#F5F5F5',
+                          color: isSelected ? colors.text : 'black'
+                        }}
+                      >
+                        {cat.toUpperCase()}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-xs font-bold text-gray-500 block mb-2">AMENITIES</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {amenityOptions.map(amenity => (
+                    <button 
+                      key={amenity} 
+                      onClick={() => toggleAmenity(amenity)}
+                      className={`px-3 py-2 text-xs font-bold text-left ${filters.amenities.includes(amenity) ? 'bg-black text-white' : 'bg-throne-lightgray'}`}
+                    >
+                      {filters.amenities.includes(amenity) && '✓ '}{amenity}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 flex gap-2">
+              <button onClick={clearFilters} className="flex-1 py-3 border border-black text-sm font-bold">CLEAR</button>
+              <button onClick={() => setShowFilters(false)} className="flex-1 py-3 bg-black text-white text-sm font-bold">
+                SHOW {filtered.length} RESULTS
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+
+    }
+
+    ReactDOM.render(<App />, document.getElementById('app'));
+  </script>
+</body>
+</html>
