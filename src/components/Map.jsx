@@ -135,17 +135,24 @@ const Map = ({
   // Resize map when view changes
   useEffect(() => {
     if (mapInstanceRef.current) {
-      setTimeout(() => {
-        mapInstanceRef.current.invalidateSize();
-      }, 100);
+      // Multiple invalidateSize calls to handle CSS transition
+      const timers = [100, 300, 500].map(delay => 
+        setTimeout(() => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.invalidateSize();
+          }
+        }, delay)
+      );
+      return () => timers.forEach(t => clearTimeout(t));
     }
   }, [isFullView]);
 
   return (
-    <div className="relative">
+    <div className="relative overflow-hidden isolate" style={{ zIndex: 1 }}>
       <div 
         ref={mapRef} 
-        className={`w-full z-0 transition-all duration-300 ${isFullView ? 'h-[60vh]' : 'h-56'}`}
+        className={`w-full transition-all duration-300 ${isFullView ? 'h-[60vh]' : 'h-56'}`}
+        style={{ position: 'relative', zIndex: 0 }}
       />
 
       {/* View Toggle Button */}
