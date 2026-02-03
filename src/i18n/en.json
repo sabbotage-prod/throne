@@ -1,0 +1,143 @@
+{
+  "common": {
+    "appName": "Throne",
+    "tagline": "Your #1 resource for your 1s and 2s",
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "submit": "Submit",
+    "search": "Search",
+    "share": "Share",
+    "copied": "Copied!",
+    "directions": "Directions",
+    "more": "More",
+    "less": "Less",
+    "results": "Results",
+    "noResults": "No results match your filters",
+    "clearFilters": "Clear Filters",
+    "error": "Error"
+  },
+  "landing": {
+    "headline1": "Find.",
+    "headline2": "Go.",
+    "headline3": "Relief.",
+    "searchPlaceholder": "Search city or address",
+    "useCurrentLocation": "Use Current Location",
+    "exploreCity": "Explore Paris",
+    "spots": "Spots",
+    "reviews": "Reviews",
+    "installApp": "Install App",
+    "installInstructions": "Tap share icon, then 'Add to Home Screen'"
+  },
+  "results": {
+    "searchLocation": "Search location",
+    "mapView": "Map",
+    "listView": "List",
+    "addSpot": "Add",
+    "filter": "Filter",
+    "facility": "Facility"
+  },
+  "categories": {
+    "public": "Public",
+    "business": "Business",
+    "pay": "Pay"
+  },
+  "categoryDescriptions": {
+    "public": "Parks, streets, free access",
+    "business": "Cafés, stores, restaurants",
+    "pay": "Coin/card entry required"
+  },
+  "filters": {
+    "title": "Filters",
+    "maxDistance": "Max Distance",
+    "minRating": "Min Rating",
+    "facilityType": "Facility Type",
+    "amenities": "Amenities",
+    "all": "All",
+    "clear": "Clear",
+    "showResults": "Show {count} Results"
+  },
+  "amenities": {
+    "changingTable": "Changing Table",
+    "lactationRoom": "Lactation Room",
+    "drinkingFountain": "Drinking Fountain",
+    "mirrors": "Mirrors",
+    "menstrualSupplies": "Menstrual Supplies",
+    "genderless": "Genderless",
+    "wheelchairAccessible": "Wheelchair Accessible",
+    "urinal": "Urinal",
+    "vendingMachine": "Vending Machine",
+    "smellsNice": "Smells Nice",
+    "handLotion": "Hand Lotion",
+    "niceSpace": "Nice Space",
+    "selfCleaning": "Self-Cleaning"
+  },
+  "addSpot": {
+    "title": "Add Spot",
+    "name": "Name",
+    "namePlaceholder": "Location name",
+    "address": "Address",
+    "addressPlaceholder": "Start typing address...",
+    "type": "Type",
+    "hours": "Hours",
+    "hoursPlaceholder": "e.g., 07:00–22:00",
+    "yourRating": "Your Rating",
+    "description": "Description",
+    "descriptionPlaceholder": "Tell others about this spot",
+    "addingAs": "Adding as"
+  },
+  "auth": {
+    "logIn": "Log In",
+    "logOut": "Log Out",
+    "createAccount": "Create Account",
+    "continueWithGoogle": "Continue with Google",
+    "or": "OR",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "email": "Email",
+    "emailPlaceholder": "you@email.com",
+    "password": "Password",
+    "passwordPlaceholder": "••••••••",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signUp": "Sign up",
+    "savedSpots": "Saved Spots",
+    "myContributions": "My Contributions"
+  },
+  "rating": {
+    "title": "Rate & Review",
+    "yourRating": "Your Rating",
+    "yourReview": "Your Review (Optional)",
+    "reviewPlaceholder": "Share your experience...",
+    "saving": "Saving..."
+  },
+  "reviews": {
+    "title": "Reviews",
+    "noReviews": "No reviews yet. Be the first!",
+    "anonymous": "Anonymous"
+  },
+  "spot": {
+    "hours": "Hours",
+    "notSpecified": "Not specified",
+    "allAmenities": "All Amenities",
+    "readMore": "Read More"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send Message",
+    "sent": "Message Sent",
+    "sentMessage": "We'll get back to you soon!"
+  },
+  "legal": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "copyright": "© 2025 Throne. All rights reserved."
+  },
+  "footer": {
+    "contactUs": "Contact Us"
+  }
+}

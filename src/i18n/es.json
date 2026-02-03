@@ -1,0 +1,143 @@
+{
+  "common": {
+    "appName": "Throne",
+    "tagline": "Tu recurso #1 para tus necesidades",
+    "loading": "Cargando...",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "close": "Cerrar",
+    "submit": "Enviar",
+    "search": "Buscar",
+    "share": "Compartir",
+    "copied": "¡Copiado!",
+    "directions": "Direcciones",
+    "more": "Más",
+    "less": "Menos",
+    "results": "Resultados",
+    "noResults": "Ningún resultado coincide con tus filtros",
+    "clearFilters": "Borrar filtros",
+    "error": "Error"
+  },
+  "landing": {
+    "headline1": "Encuentra.",
+    "headline2": "Ve.",
+    "headline3": "Alivia.",
+    "searchPlaceholder": "Buscar ciudad o dirección",
+    "useCurrentLocation": "Usar mi ubicación",
+    "exploreCity": "Explorar París",
+    "spots": "Lugares",
+    "reviews": "Reseñas",
+    "installApp": "Instalar App",
+    "installInstructions": "Toca compartir, luego 'Añadir a pantalla de inicio'"
+  },
+  "results": {
+    "searchLocation": "Buscar ubicación",
+    "mapView": "Mapa",
+    "listView": "Lista",
+    "addSpot": "Añadir",
+    "filter": "Filtrar",
+    "facility": "Establecimiento"
+  },
+  "categories": {
+    "public": "Público",
+    "business": "Comercio",
+    "pay": "De pago"
+  },
+  "categoryDescriptions": {
+    "public": "Parques, calles, acceso libre",
+    "business": "Cafés, tiendas, restaurantes",
+    "pay": "Entrada con moneda/tarjeta"
+  },
+  "filters": {
+    "title": "Filtros",
+    "maxDistance": "Distancia máx",
+    "minRating": "Puntuación mín",
+    "facilityType": "Tipo de establecimiento",
+    "amenities": "Comodidades",
+    "all": "Todos",
+    "clear": "Borrar",
+    "showResults": "Mostrar {count} resultados"
+  },
+  "amenities": {
+    "changingTable": "Cambiador",
+    "lactationRoom": "Sala de lactancia",
+    "drinkingFountain": "Fuente de agua",
+    "mirrors": "Espejos",
+    "menstrualSupplies": "Productos menstruales",
+    "genderless": "Sin género",
+    "wheelchairAccessible": "Accesible silla de ruedas",
+    "urinal": "Urinario",
+    "vendingMachine": "Máquina expendedora",
+    "smellsNice": "Huele bien",
+    "handLotion": "Crema de manos",
+    "niceSpace": "Buen espacio",
+    "selfCleaning": "Autolimpiante"
+  },
+  "addSpot": {
+    "title": "Añadir lugar",
+    "name": "Nombre",
+    "namePlaceholder": "Nombre del lugar",
+    "address": "Dirección",
+    "addressPlaceholder": "Empieza a escribir la dirección...",
+    "type": "Tipo",
+    "hours": "Horario",
+    "hoursPlaceholder": "ej: 07:00–22:00",
+    "yourRating": "Tu puntuación",
+    "description": "Descripción",
+    "descriptionPlaceholder": "Cuéntales a otros sobre este lugar",
+    "addingAs": "Añadiendo como"
+  },
+  "auth": {
+    "logIn": "Iniciar sesión",
+    "logOut": "Cerrar sesión",
+    "createAccount": "Crear cuenta",
+    "continueWithGoogle": "Continuar con Google",
+    "or": "O",
+    "name": "Nombre",
+    "namePlaceholder": "Tu nombre",
+    "email": "Email",
+    "emailPlaceholder": "tu@email.com",
+    "password": "Contraseña",
+    "passwordPlaceholder": "••••••••",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "signUp": "Registrarse",
+    "savedSpots": "Lugares guardados",
+    "myContributions": "Mis contribuciones"
+  },
+  "rating": {
+    "title": "Puntuar y reseñar",
+    "yourRating": "Tu puntuación",
+    "yourReview": "Tu reseña (Opcional)",
+    "reviewPlaceholder": "Comparte tu experiencia...",
+    "saving": "Guardando..."
+  },
+  "reviews": {
+    "title": "Reseñas",
+    "noReviews": "Aún no hay reseñas. ¡Sé el primero!",
+    "anonymous": "Anónimo"
+  },
+  "spot": {
+    "hours": "Horario",
+    "notSpecified": "No especificado",
+    "allAmenities": "Todas las comodidades",
+    "readMore": "Leer más"
+  },
+  "contact": {
+    "title": "Contáctanos",
+    "name": "Nombre",
+    "email": "Email",
+    "message": "Mensaje",
+    "send": "Enviar mensaje",
+    "sent": "Mensaje enviado",
+    "sentMessage": "¡Te responderemos pronto!"
+  },
+  "legal": {
+    "privacy": "Política de privacidad",
+    "terms": "Términos de servicio",
+    "copyright": "© 2025 Throne. Todos los derechos reservados."
+  },
+  "footer": {
+    "contactUs": "Contáctanos"
+  }
+}
