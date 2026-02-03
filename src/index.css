@@ -52,8 +52,25 @@
 .user-marker-pulse {
   animation: pulse 2s infinite;
 }
-/* Contain Leaflet map properly */
+
+/* CRITICAL: Contain Leaflet map markers within map bounds */
+.leaflet-map-pane,
+.leaflet-tile-pane,
+.leaflet-overlay-pane,
+.leaflet-shadow-pane,
+.leaflet-marker-pane,
+.leaflet-tooltip-pane,
+.leaflet-popup-pane {
+  z-index: 1 !important;
+}
+
+.leaflet-control {
+  z-index: 2 !important;
+}
+
+/* Ensure markers don't escape the map container */
 .leaflet-container {
+  overflow: hidden !important;
   z-index: 0 !important;
 }
 
@@ -63,11 +80,5 @@
 
 .leaflet-top,
 .leaflet-bottom {
-  z-index: 10 !important;
-}
-
-/* Ensure map wrapper contains all children */
-.map-wrapper {
-  isolation: isolate;
-  contain: layout;
+  z-index: 2 !important;
 }
