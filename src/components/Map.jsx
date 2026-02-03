@@ -17,35 +17,42 @@ const Map = ({
   const markersRef = useRef([]);
   const userMarkerRef = useRef(null);
   const [selectedPopupSpot, setSelectedPopupSpot] = useState(null);
+  const [mapReady, setMapReady] = useState(false);
 
   // Initialize map
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
-    mapInstanceRef.current = L.map(mapRef.current).setView(mapCenter, 13);
+    mapInstanceRef.current = L.map(mapRef.current, {
+      zoomControl: true,
+      attributionControl: true
+    }).setView(mapCenter, 13);
     
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       attribution: '© OpenStreetMap © CARTO'
     }).addTo(mapInstanceRef.current);
 
+    setMapReady(true);
+
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
+        setMapReady(false);
       }
     };
   }, []);
 
   // Update map center
   useEffect(() => {
-    if (mapInstanceRef.current) {
+    if (mapInstanceRef.current && mapReady) {
       mapInstanceRef.current.setView(mapCenter, 14);
     }
-  }, [mapCenter]);
+  }, [mapCenter, mapReady]);
 
   // Update user marker
   useEffect(() => {
-    if (!mapInstanceRef.current || !userLocation) return;
+    if (!mapInstanceRef.current || !userLocation || !mapReady) return;
 
     if (userMarkerRef.current) {
       userMarkerRef.current.remove();
@@ -73,11 +80,11 @@ const Map = ({
     })
       .addTo(mapInstanceRef.current)
       .bindPopup('<strong>You</strong>');
-  }, [userLocation]);
+  }, [userLocation, mapReady]);
 
   // Update spot markers
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
+    if (!mapInstanceRef.current || !mapReady) return;
 
     // Clear existing markers
     markersRef.current.forEach(m => m.remove());
@@ -130,41 +137,73 @@ const Map = ({
       const bounds = L.latLngBounds(spots.map(s => [s.lat, s.lng]));
       mapInstanceRef.current.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
     }
-  }, [spots, selectedSpot, isFullView]);
+  }, [spots, selectedSpot, isFullView, mapReady]);
 
-  // Resize map when view changes
+  // Resize map when view changes - aggressive multi-call approach
   useEffect(() => {
-    if (mapInstanceRef.current) {
-      // Multiple invalidateSize calls to handle CSS transition
-      const timers = [100, 300, 500].map(delay => 
-        setTimeout(() => {
-          if (mapInstanceRef.current) {
-            mapInstanceRef.current.invalidateSize();
-          }
-        }, delay)
-      );
-      return () => timers.forEach(t => clearTimeout(t));
-    }
+    if (!mapInstanceRef.current) return;
+
+    // Invalidate immediately
+    mapInstanceRef.current.invalidateSize();
+
+    // Then keep invalidating during the CSS transition
+    const intervals = [50, 100, 150, 200, 300, 400, 500, 600, 800, 1000];
+    const timers = intervals.map(delay =>
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize({ animate: false, pan: false });
+        }
+      }, delay)
+    );
+
+    return () => timers.forEach(t => clearTimeout(t));
   }, [isFullView]);
 
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
-    <div className="relative overflow-hidden isolate" style={{ zIndex: 1 }}>
+    <div 
+      className="relative" 
+      style={{ 
+        isolation: 'isolate',
+        zIndex: 1,
+        overflow: 'hidden'
+      }}
+    >
       <div 
         ref={mapRef} 
-        className={`w-full transition-all duration-300 ${isFullView ? 'h-[60vh]' : 'h-56'}`}
-        style={{ position: 'relative', zIndex: 0 }}
+        style={{ 
+          width: '100%',
+          height: isFullView ? '60vh' : '224px',
+          position: 'relative',
+          zIndex: 0,
+          transition: 'height 0.3s ease'
+        }}
       />
 
       {/* View Toggle Button */}
       <button
         onClick={onToggleView}
-        className="absolute top-2 right-2 bg-white border-2 border-black px-3 py-1 text-xs font-bold z-[500] hover:bg-black hover:text-white transition-colors"
+        className="absolute top-2 right-2 bg-white border-2 border-black px-3 py-1 text-xs font-bold hover:bg-black hover:text-white transition-colors"
+        style={{ zIndex: 500 }}
       >
         {isFullView ? t('results.listView') : t('results.mapView')}
       </button>
 
       {/* Category Legend */}
-      <div className="absolute bottom-2 left-2 bg-white/95 px-2 py-1 text-[10px] z-[500] flex gap-3">
+      <div 
+        className="absolute bottom-2 left-2 bg-white/95 px-2 py-1 text-[10px] flex gap-3"
+        style={{ zIndex: 500 }}
+      >
         {Object.entries(CATEGORIES).map(([name, colors]) => (
           <div key={name} className="flex items-center gap-1">
             <div className="w-3 h-3" style={{ backgroundColor: colors.bg }} />
@@ -175,7 +214,10 @@ const Map = ({
 
       {/* Popup Card for Full View */}
       {isFullView && selectedPopupSpot && (
-        <div className="absolute bottom-16 left-4 right-4 bg-white border-2 border-black p-4 z-[600] shadow-lg max-w-sm mx-auto">
+        <div 
+          className="absolute bottom-16 left-4 right-4 bg-white border-2 border-black p-4 shadow-lg max-w-sm mx-auto"
+          style={{ zIndex: 600 }}
+        >
           <button
             onClick={() => setSelectedPopupSpot(null)}
             className="absolute top-2 right-2 text-gray-500 hover:text-black"
