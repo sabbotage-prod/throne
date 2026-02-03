@@ -341,8 +341,8 @@ const Results = ({
         onToggleView={() => setIsMapView(!isMapView)}
       />
 
-      {/* Controls */}
-      <div className="bg-white p-3 border-b border-gray-200">
+     {/* Controls */}
+      <div className="bg-white p-3 border-b border-gray-200 relative" style={{ zIndex: 10 }}>
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div className="flex gap-2">
             {Object.entries(CATEGORIES).map(([name, colors]) => {
@@ -385,9 +385,9 @@ const Results = ({
         </div>
       </div>
 
-      {/* Results List (hidden in full map view) */}
+{/* Results List (hidden in full map view) */}
       {!isMapView && (
-        <div className="flex-1 p-3">
+        <div className="flex-1 p-3 relative bg-throne-lightgray" style={{ zIndex: 10 }}>
           <div className="max-w-lg mx-auto">
             <div className="flex justify-between items-center mb-3">
               <span className="text-xs text-gray-500">
