@@ -107,6 +107,12 @@ const Results = ({
     setIsMapView(false); // Switch to list view to show details
   };
 
+  // Handle map pan/drag - updates center to show nearby spots
+  const handleMapMove = (newCenter) => {
+    setMapCenter(newCenter);
+    setLocationName('Map Area');
+  };
+
   const toggleCategory = (cat) => {
     setFilters(f => ({
       ...f,
@@ -214,12 +220,23 @@ const Results = ({
     setLocations(prev => [newSpot, ...prev]);
   };
 
+  // Fixed share function - uses base URL instead of current page
   const shareSpot = (loc) => {
+    const baseUrl = window.location.origin;
     const text = `${loc.name} on Throne — ${loc.rating}★ ${loc.address}`;
+    
     if (navigator.share) {
-      navigator.share({ title: loc.name, text, url: window.location.href });
+      navigator.share({ 
+        title: loc.name, 
+        text: text,
+        url: baseUrl
+      }).catch(() => {
+        // User cancelled or error - fall back to clipboard
+        navigator.clipboard.writeText(`${text}\n${baseUrl}`);
+        alert(t('common.copied'));
+      });
     } else {
-      navigator.clipboard.writeText(text);
+      navigator.clipboard.writeText(`${text}\n${baseUrl}`);
       alert(t('common.copied'));
     }
   };
@@ -329,7 +346,7 @@ const Results = ({
         </div>
       </div>
 
-      {/* Map */}
+      {/* Map - now with onMapMove handler */}
       <Map
         t={t}
         spots={filtered}
@@ -337,11 +354,12 @@ const Results = ({
         userLocation={userLocation}
         mapCenter={mapCenter}
         onSpotSelect={handleSpotSelect}
+        onMapMove={handleMapMove}
         isFullView={isMapView}
         onToggleView={() => setIsMapView(!isMapView)}
       />
 
-     {/* Controls */}
+      {/* Controls */}
       <div className="bg-white p-3 border-b border-gray-200 relative" style={{ zIndex: 10 }}>
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div className="flex gap-2">
@@ -385,7 +403,7 @@ const Results = ({
         </div>
       </div>
 
-{/* Results List (hidden in full map view) */}
+      {/* Results List (hidden in full map view) */}
       {!isMapView && (
         <div className="flex-1 p-3 relative bg-throne-lightgray" style={{ zIndex: 10 }}>
           <div className="max-w-lg mx-auto">
