@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Map from '../components/Map';
@@ -32,6 +33,7 @@ const Results = ({
   userLocation,
   setUserLocation
 }) => {
+  const [searchParams] = useSearchParams();
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [showFilters, setShowFilters] = useState(false);
@@ -41,6 +43,7 @@ const Results = ({
   const [showReviews, setShowReviews] = useState(null);
   const [showMySpots, setShowMySpots] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [deepLinkHandled, setDeepLinkHandled] = useState(false);
   
   const [filters, setFilters] = useState({
     categories: [],
@@ -57,6 +60,36 @@ const Results = ({
   const { getCurrentPosition, getDistance } = useGeolocation();
 
   const userSpots = user ? locations.filter(l => l.user_id === user.id) : [];
+
+  // Handle deep link - navigate to shared spot
+  useEffect(() => {
+    if (deepLinkHandled || locations.length === 0) return;
+    
+    const spotId = searchParams.get('spot');
+    if (spotId) {
+      // Find the spot (handle both string and number IDs)
+      const spot = locations.find(l => 
+        String(l.id) === String(spotId)
+      );
+      
+      if (spot) {
+        // Center map on the spot
+        setMapCenter([spot.lat, spot.lng]);
+        setLocationName(spot.name);
+        // Select and expand the spot
+        setSelectedLocation(spot.id);
+        setExpanded(spot.id);
+        // Clear filters to ensure spot is visible
+        setFilters({
+          categories: [],
+          amenities: [],
+          maxDistance: 50, // Increase distance to ensure spot shows
+          minRating: 0
+        });
+      }
+      setDeepLinkHandled(true);
+    }
+  }, [searchParams, locations, deepLinkHandled]);
 
   // Calculate distances and filter
   const locationsWithDistance = locations.map(loc => ({
@@ -220,23 +253,24 @@ const Results = ({
     setLocations(prev => [newSpot, ...prev]);
   };
 
-  // Fixed share function - uses base URL instead of current page
+  // Share function with deep link to specific spot
   const shareSpot = (loc) => {
     const baseUrl = window.location.origin;
-    const text = `${loc.name} on Throne — ${loc.rating}★ ${loc.address}`;
+    const shareUrl = `${baseUrl}/results?spot=${loc.id}`;
+    const text = `${loc.name} on Throne — ${loc.rating}★\n${loc.address}`;
     
     if (navigator.share) {
       navigator.share({ 
-        title: loc.name, 
+        title: `${loc.name} | Throne`, 
         text: text,
-        url: baseUrl
+        url: shareUrl
       }).catch(() => {
         // User cancelled or error - fall back to clipboard
-        navigator.clipboard.writeText(`${text}\n${baseUrl}`);
+        navigator.clipboard.writeText(`${text}\n${shareUrl}`);
         alert(t('common.copied'));
       });
     } else {
-      navigator.clipboard.writeText(`${text}\n${baseUrl}`);
+      navigator.clipboard.writeText(`${text}\n${shareUrl}`);
       alert(t('common.copied'));
     }
   };
