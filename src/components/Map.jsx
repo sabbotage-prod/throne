@@ -9,6 +9,7 @@ const Map = ({
   userLocation,
   mapCenter,
   onSpotSelect,
+  onMapMove,
   isFullView = false,
   onToggleView
 }) => {
@@ -32,6 +33,14 @@ const Map = ({
       attribution: '© OpenStreetMap © CARTO'
     }).addTo(mapInstanceRef.current);
 
+    // Listen for map move/pan events
+    mapInstanceRef.current.on('moveend', () => {
+      if (onMapMove && mapInstanceRef.current) {
+        const center = mapInstanceRef.current.getCenter();
+        onMapMove([center.lat, center.lng]);
+      }
+    });
+
     setMapReady(true);
 
     return () => {
@@ -43,10 +52,15 @@ const Map = ({
     };
   }, []);
 
-  // Update map center
+  // Update map center (only when programmatically changed, not from user drag)
   useEffect(() => {
     if (mapInstanceRef.current && mapReady) {
-      mapInstanceRef.current.setView(mapCenter, 14);
+      const currentCenter = mapInstanceRef.current.getCenter();
+      const distance = Math.abs(currentCenter.lat - mapCenter[0]) + Math.abs(currentCenter.lng - mapCenter[1]);
+      // Only pan if significantly different (to avoid fighting with user drag)
+      if (distance > 0.001) {
+        mapInstanceRef.current.setView(mapCenter, mapInstanceRef.current.getZoom(), { animate: true });
+      }
     }
   }, [mapCenter, mapReady]);
 
